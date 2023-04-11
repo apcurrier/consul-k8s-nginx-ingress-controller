@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test-nginx-ingress
+  namespace: nginx-ingress
+  annotations:
+    nginx.org/client-max-body-size: "4m"
+    nginx.org/underscores-in-headers: "on"
+    nginx.org/proxy-read-timeout: "300s"
+    nginx.org/proxy-send-timeout: "300s"
+    nginx.org/proxy-connect-timeout: "300s"
+    nginx.org/keepalive: "300s"
+    nginx.org/proxy-buffer-size: 8k
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "<HOST NAME>"
+    http:
+      paths:
+      - path: /server
+        pathType: Prefix
+        backend:
+          service:
+            name: static-server
+            port: 
+              number: 8080
+  defaultBackend:
+    service:
+      name: static-server
+      port:
+        number: 8080
