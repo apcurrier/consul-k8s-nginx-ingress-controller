@@ -103,7 +103,7 @@ Consul on K8s can be deployed on any K8s distro such as EKS, GKE, and AKS. The f
 5. Set NGINX load balancer IP as an environment variable.
 
     ```bash
-    export NGINX_INGRESS_IP=$(kubectl get service ingress-nginx-controller -n ingress-nginx -o json | jq -r '.status.loadBalancer.ingress[].ip')
+    export NGINX_INGRESS_HOSTNAME=$(kubectl get service nginx-ingress-controller -n nginx-ingress -o json | jq -r '.status.loadBalancer.ingress[].hostname')
     ```
 
 6. Generate Ingress resource configuration with NGINX load balancer IP.
@@ -126,7 +126,7 @@ Consul on K8s can be deployed on any K8s distro such as EKS, GKE, and AKS. The f
     spec:
       ingressClassName: nginx
       rules:
-      - host: "$NGINX_INGRESS_IP.nip.io"
+      - host: "$NGINX_INGRESS_HOSTNAME"
         http:
           paths:
           - path: /server
