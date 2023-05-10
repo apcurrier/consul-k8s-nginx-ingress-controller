@@ -39,7 +39,7 @@ global:
   # image: "hashicorp/consul-enterprise:1.10.0-ent"
   # ```
   # @default: hashicorp/consul:<latest version>
-  image: hashicorp/consul:1.15.2
+  image: hashicorp/consul:1.14.3
 
   adminPartitions:
     enabled: false
@@ -113,7 +113,7 @@ global:
     # to expose Prometheus metrics for the Consul service mesh. By default
     # this includes gateway metrics and sidecar metrics.
     # @type: boolean
-    enabled: false
+    enabled: true
 
     # Configures consul agent metrics. Only applicable if
     # `global.metrics.enabled` is true.
@@ -152,7 +152,23 @@ global:
     # If true, the Helm chart will create necessary configuration for running
     # its components on OpenShift.
     enabled: false
-
+# Values that configure the Consul UI.
+ui:
+  # If true, the UI will be enabled. This will
+  # only _enable_ the UI, it doesn't automatically register any service for external
+  # access. The UI will only be enabled on server agents. If `server.enabled` is
+  # false, then this setting has no effect. To expose the UI in some way, you must
+  # configure `ui.service`.
+  # @default: global.enabled
+  # @type: boolean
+  enabled: true
+  
+  # Configure the service for the Consul UI.
+  service:
+    # The service type to register.
+    # @type: string   
+    type: LoadBalancer
+    
 # Server, when enabled, configures a server cluster to run. This should
 # be disabled if you plan on connecting to a Consul cluster external to
 # the Kube cluster.    
@@ -567,28 +583,6 @@ dns:
   # ServiceSpec object.
   # @type: string
   additionalSpec: null
-
-# Values that configure the Consul UI.
-ui:
-  # If true, the UI will be enabled. This will
-  # only _enable_ the UI, it doesn't automatically register any service for external
-  # access. The UI will only be enabled on server agents. If `server.enabled` is
-  # false, then this setting has no effect. To expose the UI in some way, you must
-  # configure `ui.service`.
-  # @default: global.enabled
-  # @type: boolean
-  enabled: true
-  
-  # Configure the service for the Consul UI.
-  service:
-    # This will enable/disable registering a
-    # Kubernetes Service for the Consul UI. This value only takes effect if `ui.enabled` is
-    # true and taking effect.
-    enabled: true
-    
-    # The service type to register.
-    # @type: string   
-    type: LoadBalancer
 
 # Configures the automatic Connect sidecar injector.
 connectInject:
