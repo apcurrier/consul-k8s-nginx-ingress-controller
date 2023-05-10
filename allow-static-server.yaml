@@ -6,5 +6,5 @@ spec:
   destination:
     name: static-server
   sources:
-    - name: ingress-nginx
+    - name: nginx-ingress
       action: allow
