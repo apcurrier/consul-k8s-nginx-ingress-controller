@@ -81,17 +81,20 @@ Consul on K8s can be deployed on any K8s distro such as EKS, GKE, and AKS. The f
     kubectl apply -f deny-all.yaml
     ```
 
-3. Deploy NGINX Ingress Controller ([ingress-nginx](https://github.com/kubernetes/ingress-nginx)).
+3. Deploy NGINX Ingress Controller ([nginx-ingress](https://github.com/nginxinc/kubernetes-ingress)).
 
     ```bash
-    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    git clone https://github.com/nginxinc/kubernetes-ingress.git
+    ```
+    
+    ```bash
+    helm repo add nginx-stable https://helm.nginx.com/stable
     ```
 
     ```bash
-    helm upgrade --install ingress-nginx ingress-nginx \
-      --repo https://kubernetes.github.io/ingress-nginx \
-      --namespace ingress-nginx --create-namespace --values nginx-ingress-values.yaml
-
+    helm upgrade --install nginx-ingress nginx-stable/nginx-ingress \
+    --namespace=nginx-ingress --create-namespace \
+    --values nginx-ingress-values.yaml
     ```
 
 4. Configure ServiceDefaults to enable [DialedDirectly](https://developer.hashicorp.com/consul/docs/connect/config-entries/service-defaults#dialeddirectly) for transparent proxy.
@@ -103,7 +106,7 @@ Consul on K8s can be deployed on any K8s distro such as EKS, GKE, and AKS. The f
 5. Set NGINX load balancer IP as an environment variable.
 
     ```bash
-    export NGINX_INGRESS_HOSTNAME=$(kubectl get service nginx-ingress-controller -n nginx-ingress -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+    export NGINX_INGRESS_IP=$(kubectl get service nginx-ingress-controller -n nginx-ingress -o json | jq -r '.status.loadBalancer.ingress[].ip')
     ```
 
 6. Generate Ingress resource configuration with NGINX load balancer IP.
@@ -113,20 +116,20 @@ Consul on K8s can be deployed on any K8s distro such as EKS, GKE, and AKS. The f
     apiVersion: networking.k8s.io/v1
     kind: Ingress
     metadata:
-      name: test-nginx-ingress
+      name: nginx-ingress
+      namespace: nginx-ingress
       annotations:
-        nginx.ingress.kubernetes.io/proxy-body-size: 10G
-        nginx.ingress.kubernetes.io/enable-underscores-in-headers: "true"
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-        nginx.ingress.kubernetes.io/proxy-connect-timeout: "1200"
-        # nginx.ingress.kubernetes.io/client-header-timeout: "300"
-        nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "300"
-        nginx.ingress.kubernetes.io/proxy-buffer-size: 8k
+        nginx.org/client-max-body-size: "4m"
+        nginx.org/underscores-in-headers: "on"
+        nginx.org/proxy-read-timeout: "300s"
+        nginx.org/proxy-send-timeout: "300s"
+        nginx.org/proxy-connect-timeout: "300s"
+        nginx.org/keepalive: "300s"
+        nginx.org/proxy-buffer-size: 8k
     spec:
       ingressClassName: nginx
       rules:
-      - host: "$NGINX_INGRESS_HOSTNAME"
+      - host: "$NGINX_INGRESS_IP"
         http:
           paths:
           - path: /server
@@ -173,4 +176,4 @@ Consul on K8s can be deployed on any K8s distro such as EKS, GKE, and AKS. The f
     ```text
     "hello world"
     ```
-
+    
